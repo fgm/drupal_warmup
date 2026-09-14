@@ -176,7 +176,7 @@ func (w *Warmer) fetch(ctx context.Context, stage *Stage, e sources.Entry) outco
 		o.note = join(o.note, resp.Request.URL.String())
 	}
 	if w.Log.Enabled(ctx, slog.LevelDebug) {
-		w.Log.Debug("fetched", "url", e.URL, "status", resp.StatusCode, "headers", resp.Header)
+		w.Log.Debug("fetched", "url", e.URL, "status", resp.StatusCode)
 	}
 	return o
 }

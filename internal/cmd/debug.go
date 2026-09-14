@@ -84,10 +84,22 @@ func resolveAll(operands []string, base *url.URL) ([]*url.URL, error) {
 	return targets, nil
 }
 
+// cookieNames lists the cookies' names for a debug log.
+//
+// Never the values: a session cookie's value is a credential,
+// and logging it is what CodeQL's clear-text-logging query rejects.
+func cookieNames(cs []*http.Cookie) []string {
+	names := make([]string, len(cs))
+	for i, c := range cs {
+		names[i] = c.Name
+	}
+	return names
+}
+
 // show fetches one URL and prints what came back.
 func show(ctx context.Context, rt *Runtime, client *http.Client, u *url.URL) error {
 	req := (&http.Request{Header: http.Header{}, Method: http.MethodGet, URL: u}).WithContext(ctx)
-	rt.Log.Debug("request", "url", u, "headers", req.Header, "cookies", client.Jar.Cookies(u))
+	rt.Log.Debug("request", "url", u, "cookies", cookieNames(client.Jar.Cookies(u)))
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
