@@ -43,6 +43,25 @@ because it is a list, and the attestation is what says who wrote the list.
 Each release also carries one SPDX SBOM per archive,
 generated from the binary's own build graph rather than from `go.mod`.
 
+## Credentials
+
+The warmer sends whatever credentials it is given
+to whatever `--base` names, with every request.
+
+- `--base` must be the host you mean.
+  There is no allow-list beyond it:
+  an enumerated URL on any other host is refused,
+  which is also why `--lax` never lifts that refusal.
+- `--bapass` and `--drpass` on the command line are visible to `ps`
+  and land in shell history.
+  Set `DRUPAL_WARMUP_BAPASS` and `DRUPAL_WARMUP_DRPASS` instead;
+  the flag wins where both are present.
+- An `http://` base, or an `http://` sitemap entry fetched under `--lax`,
+  sends those credentials in clear.
+- The Xdebug trigger of the `debug` command is not a secret,
+  but it does ask the server to start a debugger session:
+  only point it at a site you control.
+
 ## Reporting a Vulnerability
 
 To report a vulnerability:
