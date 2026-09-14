@@ -2,6 +2,7 @@
 //
 // A plain text list and an XML sitemap are the two sources,
 // and neither is Drupal-specific: any site behind a sitemap can be enumerated.
+//
 // Every entry comes back as an absolute URL,
 // marked where it falls outside the scope its source may speak for,
 // so that the caller decides whether that is fatal.
@@ -16,9 +17,9 @@ import (
 
 // Entry is one URL to warm, with the outcome of its scope check.
 type Entry struct {
-	// OutsideBase marks an entry that is not under the base URL.
-	// Nothing lifts it: credentials go with every request,
-	// and the base is the host the user named.
+	// OutsideBase marks an entry that is not on the base's host or under its path.
+	// No flag makes it fetchable, --lax included:
+	// credentials go with every request, and the base is the host the user named.
 	OutsideBase bool
 	URL         *url.URL
 	// Violation says why the entry is outside the scope its source may speak for,
@@ -89,7 +90,7 @@ func hostScope(u *url.URL) *url.URL {
 // /fr/ under https://example.com/blog is https://example.com/blog/fr/.
 func joinBase(base, rel *url.URL) *url.URL {
 	u := *base
-	u.Path = path.Join(base.Path, rel.Path)
+	u.Path = rootPath(path.Join(base.Path, rel.Path))
 	if strings.HasSuffix(rel.Path, "/") && !strings.HasSuffix(u.Path, "/") {
 		u.Path += "/"
 	}
@@ -97,6 +98,26 @@ func joinBase(base, rel *url.URL) *url.URL {
 	u.RawQuery = rel.RawQuery
 	u.Fragment = ""
 	return &u
+}
+
+// joinPath joins elements onto a base URL, yielding an absolute path.
+//
+// url.URL.JoinPath keeps the path relative when the base path is empty,
+// as it is for https://example.com, and a relative request-target is
+// rejected on the wire, so the result is rooted here.
+func joinPath(base *url.URL, elem ...string) *url.URL {
+	u := base.JoinPath(elem...)
+	u.Path = rootPath(u.Path)
+	u.RawPath = ""
+	return u
+}
+
+// rootPath returns p with a leading slash: "" and "x" become "/" and "/x".
+func rootPath(p string) string {
+	if strings.HasPrefix(p, "/") {
+		return p
+	}
+	return "/" + p
 }
 
 // underHost reports whether u is on the base's host, under its path, whatever the scheme.

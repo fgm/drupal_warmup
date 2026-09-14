@@ -53,7 +53,12 @@ func (d *Drupal) Login(ctx context.Context) error {
 	if d.Client.Jar == nil {
 		return ErrNoJar
 	}
+	// JoinPath keeps the path relative when the base path is empty,
+	// and a relative request-target is rejected on the wire, so it is rooted.
 	formURL := d.Base.JoinPath("user/login")
+	if !strings.HasPrefix(formURL.Path, "/") {
+		formURL.Path = "/" + formURL.Path
+	}
 	form, err := d.readForm(ctx, formURL)
 	if err != nil {
 		return err
@@ -75,12 +80,14 @@ func (d *Drupal) Login(ctx context.Context) error {
 func (d *Drupal) post(ctx context.Context, formURL *url.URL, form url.Values) error {
 	form.Set("name", d.User)
 	form.Set("pass", d.Password)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, formURL.String(),
-		strings.NewReader(form.Encode()))
-	if err != nil {
-		return fmt.Errorf("building login request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	encoded := form.Encode()
+	req := (&http.Request{
+		Body:          io.NopCloser(strings.NewReader(encoded)),
+		ContentLength: int64(len(encoded)),
+		Header:        http.Header{"Content-Type": {"application/x-www-form-urlencoded"}},
+		Method:        http.MethodPost,
+		URL:           formURL,
+	}).WithContext(ctx)
 	resp, err := d.Client.Do(req)
 	if err != nil {
 		return fmt.Errorf("posting login: %w", err)
@@ -97,10 +104,7 @@ func (d *Drupal) post(ctx context.Context, formURL *url.URL, form url.Values) er
 
 // readForm fetches the login page and returns the hidden fields to post back.
 func (d *Drupal) readForm(ctx context.Context, formURL *url.URL) (url.Values, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, formURL.String(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("building login form request: %w", err)
-	}
+	req := (&http.Request{Header: http.Header{}, Method: http.MethodGet, URL: formURL}).WithContext(ctx)
 	resp, err := d.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetching login form: %w", err)
@@ -150,11 +154,11 @@ func scrape(page io.Reader) (url.Values, error) {
 }
 
 // attrs returns the name and value attributes of a token.
+//
+// Attribute namespaces are not looked at: the tokenizer never sets them,
+// only the parser does.
 func attrs(tok html.Token) (name, value string) {
 	for _, a := range tok.Attr {
-		if a.Namespace != "" {
-			continue
-		}
 		switch a.Key {
 		case "name":
 			name = a.Val

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"slices"
 	"strings"
@@ -41,11 +41,7 @@ func Debug(ctx context.Context, rt *Runtime, args []string) int {
 	}
 	site.passwords(rt.Env)
 	transport := site.transport(rt)
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		rt.Log.Error("building cookie jar", "err", err)
-		return ExitFailed
-	}
+	jar := newJar()
 	for _, t := range targets {
 		jar.SetCookies(&url.URL{Scheme: t.Scheme, Host: t.Host, Path: "/"},
 			[]*http.Cookie{{Name: xdebugCookie, Value: *trigger, Path: "/"}})
@@ -78,6 +74,9 @@ func resolveAll(operands []string, base *url.URL) ([]*url.URL, error) {
 			}
 			rel := u
 			u = base.JoinPath(rel.Path)
+			if !strings.HasPrefix(u.Path, "/") {
+				u.Path = "/" + u.Path
+			}
 			u.RawQuery = rel.RawQuery
 		}
 		targets = append(targets, u)
@@ -87,10 +86,7 @@ func resolveAll(operands []string, base *url.URL) ([]*url.URL, error) {
 
 // show fetches one URL and prints what came back.
 func show(ctx context.Context, rt *Runtime, client *http.Client, u *url.URL) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		return err
-	}
+	req := (&http.Request{Header: http.Header{}, Method: http.MethodGet, URL: u}).WithContext(ctx)
 	rt.Log.Debug("request", "url", u, "headers", req.Header, "cookies", client.Jar.Cookies(u))
 	resp, err := client.Do(req)
 	if err != nil {
@@ -103,14 +99,7 @@ func show(ctx context.Context, rt *Runtime, client *http.Client, u *url.URL) err
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "GET %s\n%s %s\n", u, resp.Proto, resp.Status)
-	names := slices.Sorted(func(yield func(string) bool) {
-		for name := range resp.Header {
-			if !yield(name) {
-				return
-			}
-		}
-	})
-	for _, name := range names {
+	for _, name := range slices.Sorted(maps.Keys(resp.Header)) {
 		for _, v := range resp.Header[name] {
 			fmt.Fprintf(&b, "%s: %s\n", name, v)
 		}

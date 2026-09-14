@@ -105,17 +105,14 @@ func (s *Sitemap) discover(ctx context.Context, base *url.URL) ([]located, error
 		maps = append(maps, located{scope: hostScope(u), url: u})
 	}
 	if len(maps) == 0 {
-		maps = append(maps, located{url: s.Base.JoinPath("sitemap.xml")})
+		maps = append(maps, located{url: joinPath(s.Base, "sitemap.xml")})
 	}
 	return maps, nil
 }
 
 // fetch returns the body and the final URL of a document that answered 200.
 func (s *Sitemap) fetch(ctx context.Context, u *url.URL) ([]byte, *url.URL, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		return nil, nil, fmt.Errorf("building request for %s: %w", u, err)
-	}
+	req := (&http.Request{Header: http.Header{}, Method: http.MethodGet, URL: u}).WithContext(ctx)
 	resp, err := s.Client.Do(req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("fetching %s: %w", u, err)

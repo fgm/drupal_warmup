@@ -149,10 +149,7 @@ func (w *Warmer) fetch(ctx context.Context, stage *Stage, e sources.Entry) outco
 	}
 	o := outcome{cache: "-", note: e.Violation}
 	t0 := time.Now()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, e.URL.String(), nil)
-	if err != nil {
-		return outcome{cache: "-", failed: true, note: err.Error(), status: "ERR"}
-	}
+	req := (&http.Request{Header: http.Header{}, Method: http.MethodGet, URL: e.URL}).WithContext(ctx)
 	resp, err := stage.Client.Do(req)
 	if err != nil {
 		return outcome{cache: "-", elapsed: time.Since(t0), failed: true, note: err.Error(), status: "ERR"}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http/cookiejar"
 
 	"github.com/fgm/drupal_warmup/internal/warm"
 )
@@ -34,11 +33,7 @@ func Warm(ctx context.Context, rt *Runtime, args []string) int {
 	}
 	site.passwords(rt.Env)
 	transport := site.transport(rt)
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		rt.Log.Error("building cookie jar", "err", err)
-		return ExitFailed
-	}
+	jar := newJar()
 	if status, done := site.loginIfAsked(ctx, rt, base, transport, jar); done {
 		return status
 	}

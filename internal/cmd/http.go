@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"net/http/cookiejar"
 	"time"
 )
 
@@ -23,6 +24,15 @@ func (b *basicAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 	r := req.Clone(req.Context())
 	r.SetBasicAuth(b.user, b.pass)
 	return b.next.RoundTrip(r)
+}
+
+// newJar builds an empty cookie jar.
+//
+// cookiejar.New returns a nil error unconditionally, read in net/http/cookiejar,
+// so a non-nil one would mean something language has broken.
+func newJar() http.CookieJar {
+	jar, _ := cookiejar.New(nil)
+	return jar
 }
 
 // newClient builds a client with one timeout and one redirect policy.
