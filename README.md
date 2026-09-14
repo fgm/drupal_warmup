@@ -4,6 +4,7 @@
 [![CI](https://github.com/fgm/drupal_warmup/actions/workflows/tests.yml/badge.svg)](https://github.com/fgm/drupal_warmup/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/fgm/drupal_warmup/branch/main/graph/badge.svg)](https://codecov.io/gh/fgm/drupal_warmup)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/fgm/drupal_warmup/badge)](https://scorecard.dev/viewer/?uri=github.com/fgm/drupal_warmup)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14634/badge)](https://www.bestpractices.dev/projects/14634)
 
 Warm a site's caches after a cache rebuild,
 so that visitors never pay the cold path.
@@ -115,11 +116,19 @@ so that the pages warmed are the dynamic page cache of that account
 rather than the page cache anonymous visitors hit.
 Leave `--druser` empty for anonymous warming.
 
-A logged-in warm then runs an anonymous stage over the same URLs,
-`--runs` times as well:
-the session kept those requests out of the page cache,
-and the anonymous stage fills it from the fragments the first stage rendered.
-`--no-anon` skips that stage.
+A logged-in warm runs in two stages: the authenticated one,
+then an anonymous one over the same URLs, `--no-anon` skips the second.
+The session keeps the authenticated requests out of the page cache,
+so the anonymous stage fills it from the fragments the first stage rendered.
+
+`--runs` applies to each stage on its own, not to the warm as a whole,
+because the proof of warming is a stage's own second pass:
+the authenticated run 2 serves `HIT` from the dynamic page cache,
+the anonymous run 2 serves `HIT` from the page cache.
+So the number of fetches is one serialized first fetch
+plus `runs` passes of every URL per stage:
+`--druser ... --runs=2` over 302 URLs is 1 + 2x302 + 2x302, 1209 lines,
+where an anonymous `--runs=2` is 1 + 2x302, 605.
 
 Set `DRUPAL_WARMUP_BAPASS` and `DRUPAL_WARMUP_DRPASS` rather than passing
 the passwords on the command line, where `ps` and shell history see them.
