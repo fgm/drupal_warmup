@@ -3,7 +3,6 @@
 [![GoDoc](https://pkg.go.dev/badge/github.com/fgm/drupal_warmup)](https://pkg.go.dev/github.com/fgm/drupal_warmup)
 [![CI](https://github.com/fgm/drupal_warmup/actions/workflows/tests.yml/badge.svg)](https://github.com/fgm/drupal_warmup/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/fgm/drupal_warmup/branch/main/graph/badge.svg)](https://codecov.io/gh/fgm/drupal_warmup)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/fgm/drupal_warmup/badge)](https://scorecard.dev/viewer/?uri=github.com/fgm/drupal_warmup)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14634/badge)](https://www.bestpractices.dev/projects/14634)
 
 Warm a site's caches after a cache rebuild,
@@ -24,6 +23,23 @@ $ go install github.com/fgm/drupal_warmup@latest
 Run the installed binary rather than `go run`:
 `go run` collapses every non-zero exit status to 1,
 and the statuses below are the point.
+
+### Build from source
+
+The only prerequisite is the Go toolchain, version 1.27.1 or newer,
+the version the `go` directive in `go.mod` requires.
+Dependencies are fetched automatically by Go modules on the first build,
+so there is no separate install step.
+
+```console
+$ git clone https://github.com/fgm/drupal_warmup
+$ cd drupal_warmup
+$ make build              # or: go build -o bin/ .
+```
+
+`make` also offers `test`, `lint` and `cover`.
+GoReleaser, pinned in `.tool-versions`, is needed only to produce a release,
+not to build the binary.
 
 ## Usage
 
@@ -165,6 +181,27 @@ and the reason the tool exists, which is that the first requests after
 and the plugin rediscovery.
 The page cache keeps entries until a tag invalidates them,
 so warming is needed after a rebuild, not on a schedule.
+
+## Design
+
+The actors in the system and every action the tool takes are described in
+[docs/design.md](docs/design.md), with a diagram of the warm flow.
+
+## Dependencies
+
+drupal_warmup keeps its dependencies minimal;
+how they are selected, obtained and tracked is documented in
+[SECURITY.md](SECURITY.md#dependencies).
+
+## Contributing
+
+- **Obtain it**: install it or build from source, see above.
+- **Report a bug or request a feature**:
+  open a [GitHub issue](https://github.com/fgm/drupal_warmup/issues).
+- **Contribute code**: see [CONTRIBUTING.md](CONTRIBUTING.md)
+  for the process and the requirements for acceptance.
+- **Report a security issue**: follow [SECURITY.md](SECURITY.md),
+  not the issue tracker.
 
 ## Licence
 

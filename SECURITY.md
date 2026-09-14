@@ -4,8 +4,7 @@
 
 Fixes go into the latest release only.
 Until 1.0 that means the newest `v0.x` tag and the binaries published with it:
-there are no maintenance branches,
-so an earlier release is superseded, never patched.
+there are no maintenance branches, so an earlier release is superseded, never patched.
 
 | Version               |     Supported      |
 |-----------------------|:------------------:|
@@ -43,6 +42,23 @@ because it is a list, and the attestation is what says who wrote the list.
 Each release also carries one SPDX SBOM per archive,
 generated from the binary's own build graph rather than from `go.mod`.
 
+## Dependencies
+
+Dependencies are chosen conservatively.
+The Go standard library and `golang.org/x/...` are used without review;
+any other module is vetted before it is added,
+so the runtime graph stays small (see `go.mod`).
+
+They are obtained through Go modules.
+`go.sum` records a cryptographic checksum for every module,
+the `go` toolchain verifies it on each build,
+and the release pipeline runs `go mod verify` before building.
+
+They are tracked in `go.mod` and `go.sum`, both committed.
+[Dependabot](.github/dependabot.yml) proposes updates on a schedule,
+and the version floors are kept at the versions actually in use.
+The SBOM above lists what a given release actually shipped.
+
 ## Credentials
 
 The warmer sends whatever credentials it is given
@@ -62,6 +78,37 @@ to whatever `--base` names, with every request.
   but it does ask the server to start a debugger session:
   only point it at a site you control.
 
+## Security assessment
+
+The most likely and impactful problems for a tool that fetches URLs with credentials,
+and how the design addresses each:
+
+- **Credential disclosure through the process table or shell history.** The most likely.
+  `--bapass` and `--drpass` on the command line are visible to `ps` and land in shell history.
+  Addressed by the `DRUPAL_WARMUP_BAPASS` and `DRUPAL_WARMUP_DRPASS`
+  environment variables and the documented use of a `.env` file.
+- **Credentials sent to an unintended host.**
+  A sitemap or list could name URLs on another host,
+  and sending the login or basic auth there would leak it.
+  Addressed by refusing every enumerated URL that is not under `--base`,
+  a refusal `--lax` does not lift.
+- **Cleartext transmission.**
+  An `http://` base, or an out-of-scope entry fetched under `--lax --follow`,
+  sends credentials unencrypted.
+  Addressed by documentation: the operator chooses `https`.
+- **Sensitive data reaching logs.**
+  Session cookies or authorization headers could be logged.
+  Addressed by logging cookie names only, never their values,
+  enforced by CodeQL's clear-text-logging check in CI.
+- **Supply-chain compromise.**
+  A malicious dependency or GitHub Action.
+  Addressed by a small dependency graph verified through `go.sum`
+  and `go mod verify`, SHA-pinned actions, Dependabot, OpenSSF Scorecard,
+  and Sigstore-signed release attestations.
+- **Unintended debugger activation.**
+  The `debug` command's trigger cookie starts an Xdebug session on the origin.
+  Addressed by documenting it as a tool for a site you control.
+
 ## Reporting a Vulnerability
 
 To report a vulnerability:
@@ -78,3 +125,13 @@ If a vulnerability is:
 - rejected: as you prefer, it can be either reported as an issue,
   and closed with an explanation about why it is not an actual issue; or remain private.
   The former is usually better.
+
+## Published advisories
+
+Once a reported vulnerability is fixed, it is published as a
+[GitHub Security Advisory](https://github.com/fgm/drupal_warmup/security/advisories)
+on this repository.
+The advisory records the affected versions, the fix, and the reporter's credit,
+and feeds the public GitHub Advisory Database and OSV.
+The fix is also listed under a `Security` heading in the
+[CHANGELOG](CHANGELOG.md).
