@@ -1,0 +1,5 @@
+# main.go holds only a main() that calls os.Exit, which no test can run:
+# everything testable lives in internal/, so counting main.go would report
+# a gap no test could ever close.
+ignore:
+  - "main.go"
