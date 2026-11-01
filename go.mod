@@ -4,7 +4,7 @@ go 1.27.1
 
 tool honnef.co/go/tools/cmd/staticcheck
 
-require golang.org/x/net v0.59.0
+require golang.org/x/net v0.62.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
