@@ -8,9 +8,9 @@ require golang.org/x/net v0.62.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
-	honnef.co/go/tools v0.8.1 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20261106112924-d498a4c2cc9a // indirect
+	golang.org/x/mod v0.42.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
+	honnef.co/go/tools v0.8.2 // indirect
 )
