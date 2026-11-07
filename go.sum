@@ -2,8 +2,8 @@ github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-golang.org/x/exp/typeparams v0.0.0-20261106112924-d498a4c2cc9a h1:hkfbXJSn4qBQFg/9sAmrW7L4gHt8Uo9jaOA47Orzcxk=
-golang.org/x/exp/typeparams v0.0.0-20261106112924-d498a4c2cc9a/go.mod h1:qkMnvgP8C7+xkci04txL2SJFc/0PGqnkf6gs5JUC43E=
+golang.org/x/exp/typeparams v0.0.0-20261106192419-47ce03d25ef0 h1:QwRkKGyl5AwYiD8r6wXWsVo4uiRBGz07zMLCzoA2gZQ=
+golang.org/x/exp/typeparams v0.0.0-20261106192419-47ce03d25ef0/go.mod h1:qkMnvgP8C7+xkci04txL2SJFc/0PGqnkf6gs5JUC43E=
 golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
 golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
 golang.org/x/net v0.62.0 h1:18ELalfM5+XNRwzM2nYqXsZQ9ByS1uhj2O/U7+5jqRY=
